@@ -43,13 +43,25 @@
     <None Include="shader.fs">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="shader.vs">
+    <None Include="boxShader.fs">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="lightshader.fs">
+    <None Include="boxShader.vs">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="shadertest.fs">
+    <None Include="frontShader.fs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="frontShader.vs">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="head256.raw">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="tff.dat">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="testShader.fs">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>

@@ -1,22 +1,12 @@
 ﻿  main.cpp
-C:\Users\Administrator\Desktop\OpenGL\exp2\mesh.h(98): warning C4244: “参数”: 从“unsigned int”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(194): warning C4305: “参数”: 从“double”到“float”截断
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(195): warning C4305: “参数”: 从“double”到“float”截断
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(202): warning C4305: “参数”: 从“double”到“float”截断
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(203): warning C4305: “参数”: 从“double”到“float”截断
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(210): warning C4305: “参数”: 从“double”到“float”截断
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(211): warning C4305: “参数”: 从“double”到“float”截断
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(218): warning C4305: “参数”: 从“double”到“float”截断
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(219): warning C4305: “参数”: 从“double”到“float”截断
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(227): warning C4305: “参数”: 从“double”到“float”截断
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(228): warning C4305: “参数”: 从“double”到“float”截断
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(262): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(149): warning C4101: “EBO”: 未引用的局部变量
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(379): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(380): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(384): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(385): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(387): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(388): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\exp2\main.cpp(397): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
-  exp1.vcxproj -> C:\Users\Administrator\Desktop\OpenGL\exp2\Debug\exp2_light.exe
+C:\Users\Administrator\Desktop\OpenGL\raycast\mesh.h(98): warning C4244: “参数”: 从“unsigned int”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(213): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(328): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(329): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(333): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(334): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(336): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(337): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(346): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(467): warning C4244: “初始化”: 从“std::streamsize”转换到“size_t”，可能丢失数据
+  exp1.vcxproj -> C:\Users\Administrator\Desktop\OpenGL\raycast\Debug\raycast.exe

@@ -21,9 +21,9 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{AC4570CC-1B0D-41E3-8D8E-436F4958C8F8}</ProjectGuid>
-    <RootNamespace>exp2_light</RootNamespace>
+    <RootNamespace>raycast</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>exp2_light</ProjectName>
+    <ProjectName>raycast</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -80,6 +80,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,10 +140,14 @@
     <ClInclude Include="model.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="lightshader.fs" />
+    <None Include="boxShader.fs" />
+    <None Include="boxShader.vs" />
+    <None Include="frontShader.fs" />
+    <None Include="head256.raw" />
     <None Include="shader.fs" />
-    <None Include="shader.vs" />
-    <None Include="shadertest.fs" />
+    <None Include="frontShader.vs" />
+    <None Include="testShader.fs" />
+    <None Include="tff.dat" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="container.jpg" />
