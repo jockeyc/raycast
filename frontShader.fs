@@ -4,6 +4,7 @@
 
 in vec3 EntryPoint;
 in vec4 ExitPointCoord;
+in vec3 texCoord;
 
 uniform sampler2D exitPoints;
 uniform sampler3D volume;
@@ -30,7 +31,7 @@ void main()
     float len = length(dir); // the length from front to back is calculated and used to terminate the ray
     vec3 deltaDir = normalize(dir) * StepSize;
     float deltaDirLen = length(deltaDir);
-    vec3 voxelCoord = EntryPoint+vec3(0.5f,0.5f,0.5f);
+    vec3 voxelCoord = texCoord;
     vec4 colorAcum = vec4(0.0); // The dest color
     float alphaAcum = 0.0;                // The  dest alpha for blending
     /* 定义颜色查找的坐标 */

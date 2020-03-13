@@ -196,16 +196,19 @@ int main()
 
 
 	glm::mat4 model;
-	//model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	
 	glm::mat4 view;
 	view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 	glm::mat4 projection;
 	projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 	mvp = projection * view * model;
 	boxShader.setMat4("mvp", mvp);
-
+	glm::mat4 rotate;
 	glEnable(GL_DEPTH_TEST);
 
+	
 	// render loop
 	// -----------
 	while (!glfwWindowShouldClose(window))
@@ -215,14 +218,17 @@ int main()
 		lastFrame = currentFrame;
 		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
 		view = lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
-		//model = glm::rotate(model, glm::radians(1.0f), glm::vec3(0, 1, 0));
-		mvp = projection * view * model;
+		
+		rotate = glm::rotate(rotate, glm::radians(1.0f), glm::vec3(0, 1, 0));
+		mvp = projection * view * rotate * model;
 
 		// input
 		// -----
 		processInput(window);
 
-		
+		frontShader.setInt("exitPoints", 0);
+		frontShader.setInt("volume", 1);
+		frontShader.setInt("transferFunc", 2);
 
 		// bind Texture
 		
@@ -254,13 +260,13 @@ int main()
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
-		frontShader.setInt("exitPoints", 0);
+		
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_3D, volumeData);
-		frontShader.setInt("volume", 1);
+		
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_1D, tex1d);
-		frontShader.setInt("transferFunc", 2);
+		
 
 		//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
