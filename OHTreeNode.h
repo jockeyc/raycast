@@ -17,8 +17,8 @@ enum class SubTreeOrder : int{
 	right_bottom_back = 7,
 	root = 8
 };
-class OHTreeNode {
-private:
+struct OHTreeNode {
+public:
 	OHTreeNode* children[8];
 	OHTreeNode* parent;
 	OccupancyClass occupancyClass;
@@ -27,20 +27,23 @@ private:
 	SubTreeOrder subTreeOrder;
 	glm::vec3 maxPos;
 	glm::vec3 minPos;
-public:
+
 	OHTreeNode(OHTreeNode* p, SubTreeOrder order, int d) {
 		parent = p;
 		subTreeOrder = order;
 		depth = d;
 		occupancyClass = OccupancyClass::unknown;
+		initChildren();
 		if (parent != NULL) {
+			parent->children[(int)order] = this;
 			float size = (parent->maxPos.x - parent->minPos.x) / 4;
 			glm::vec3 offset = glm::vec3(0.5f - (float)(1 & ((int)order >> 2)),
 				0.5f - (float)(1 & ((int)order >> 1)),
 				0.5f - (float)(1 & (int)order));
 			glm::vec3 parentCenter = (parent->minPos + parent->maxPos) * 0.5f;
 			glm::vec3 center = parentCenter + offset * size;
-
+			minPos = center - glm::vec3(size);
+			maxPos = center + glm::vec3(size);
 		}
 	}
 
@@ -49,7 +52,7 @@ public:
 	}
 
 	void update() {
-		memset(occupancyHistogram, 0, sizeof(int) * 3);
+		initHistogram();
 		for (int i = 0; i < 8; i++) {
 			occupancyHistogram[(int)OccupancyClass::empty] += children[i]->getCount(OccupancyClass::empty);
 			occupancyHistogram[(int)OccupancyClass::nonEmpty] += children[i]->getCount(OccupancyClass::nonEmpty);
@@ -66,7 +69,7 @@ public:
 				zeroCount++;
 		}
 		if (zeroCount == 2) {	//仅剩某单一属性 删除子树
-			memset(children, NULL, sizeof(OHTreeNode*) * 8);
+			initChildren();
 		}
 		occupancyClass = (OccupancyClass)index;
 		if (parent != NULL) parent->update();
@@ -74,6 +77,12 @@ public:
 
 	bool isLeaf() {
 		return children[0] == NULL;
+	}
+	void initHistogram() {
+		memset(occupancyHistogram, 0, sizeof(int) * 3);
+	}
+	void initChildren() {
+		memset(children, NULL, sizeof(OHTreeNode*) * 8);
 	}
 };
 #endif // !OHTREENODE
