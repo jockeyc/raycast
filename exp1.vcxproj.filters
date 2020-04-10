@@ -38,6 +38,12 @@
     <ClInclude Include="model.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="occupancyHistogramTree.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="OHTreeNode.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.fs">

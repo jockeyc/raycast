@@ -1,12 +1,12 @@
 ﻿  main.cpp
 C:\Users\Administrator\Desktop\OpenGL\raycast\mesh.h(98): warning C4244: “参数”: 从“unsigned int”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(216): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(334): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(217): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
 C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(335): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(339): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(336): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
 C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(340): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(342): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(341): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
 C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(343): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(352): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
-C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(473): warning C4244: “初始化”: 从“std::streamsize”转换到“size_t”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(344): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(353): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+C:\Users\Administrator\Desktop\OpenGL\raycast\main.cpp(507): warning C4244: “初始化”: 从“std::streamsize”转换到“size_t”，可能丢失数据
   exp1.vcxproj -> C:\Users\Administrator\Desktop\OpenGL\raycast\Debug\raycast.exe
