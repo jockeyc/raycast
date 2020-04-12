@@ -1,10 +1,15 @@
 #ifndef OHTREENODE
 #define OHTREENODE
 #include <glm/glm.hpp>
+enum FaceOrder{
+	FRONT_FACE,
+	BACK_FACE
+};
 enum class OccupancyClass : int {
 	empty = 0,
 	nonEmpty = 1,
-	unknown = 2
+	unknown = 2,
+	invaid =3
 };
 enum class SubTreeOrder : int{
 	left_top_front = 0,
@@ -28,13 +33,13 @@ public:
 	glm::vec3 maxPos;
 	glm::vec3 minPos;
 
-	OHTreeNode(OHTreeNode* p, SubTreeOrder order, int d) {
-		parent = p;
+
+	OHTreeNode(OHTreeNode* p, SubTreeOrder order) {
 		subTreeOrder = order;
-		depth = d;
 		occupancyClass = OccupancyClass::unknown;
 		initChildren();
-		if (parent != NULL) {
+		if (p != NULL) {
+			parent = p;
 			parent->children[(int)order] = this;
 			float size = (parent->maxPos.x - parent->minPos.x) / 4;
 			glm::vec3 offset = glm::vec3(0.5f - (float)(1 & ((int)order >> 2)),
@@ -44,7 +49,16 @@ public:
 			glm::vec3 center = parentCenter + offset * size;
 			minPos = center - glm::vec3(size);
 			maxPos = center + glm::vec3(size);
+			depth = parent->depth + 1;	
 		}
+		else {
+			parent = new OHTreeNode(this);
+			depth = 1;
+		}
+	}
+
+	OHTreeNode(OHTreeNode* root) {
+		occupancyClass = OccupancyClass::invaid;
 	}
 
 	int getCount(OccupancyClass occupancyClass) {
@@ -72,7 +86,7 @@ public:
 			initChildren();
 		}
 		occupancyClass = (OccupancyClass)index;
-		if (parent != NULL) parent->update();
+		if (parent->occupancyClass != OccupancyClass::invaid) parent->update();
 	}
 
 	bool isLeaf() {

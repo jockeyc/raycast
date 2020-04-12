@@ -44,6 +44,9 @@
     <ClInclude Include="OHTreeNode.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="NodeInfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shader.fs">

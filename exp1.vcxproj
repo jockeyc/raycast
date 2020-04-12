@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="mesh.h" />
+    <ClInclude Include="NodeInfo.h" />
     <ClInclude Include="occupancyHistogramTree.h" />
     <ClInclude Include="OHTreeNode.h" />
     <ClInclude Include="shader.h" />
