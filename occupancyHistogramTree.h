@@ -13,9 +13,11 @@ private:
 	unsigned char* volumeData;
 	glm::vec3 CameraPos;
 	std::vector<NodeInfo*> OccupancyGeometryArray;
-	std::vector<NodeInfo*> OccupancyIndexArray;
+	
 	//int traversalCount;
 public:
+
+	std::vector<NodeInfo*> OccupancyIndexArray;
 	OccupancyHistogramTree();
 	void setMaxNode(int max);
 	void setMaxDepth(int max);
@@ -23,13 +25,16 @@ public:
 	void setCameraPos(glm::vec3 pos);
 	void setVolumeData(unsigned char* data);
 	void PropagateOccupancyHistograms(OHTreeNode* node);
+	void Propagation();
 	void TraversalOccupancyGeometryGeneration();
 	void emitGeometry(OHTreeNode* node);
 	void emitIndex(OHTreeNode* node, FaceOrder face);
 	void TraversalIndexOrder(OHTreeNode* node);
+	void TraversalIndexOrderRoot();
 	void getSubOrder(OHTreeNode* node, std::vector<SubTreeOrder>& vec);
 	//bool static subOrderCompare(std::pair<SubTreeOrder, glm::vec3>& A, std::pair<SubTreeOrder, glm::vec3>& B);
 	void subDivision(OHTreeNode* node);
+	void subDivisionRoot();
 	void sampleVolume(OHTreeNode* node);
 };
 
@@ -37,6 +42,7 @@ OccupancyHistogramTree::OccupancyHistogramTree() {
 	root = new OHTreeNode(NULL, SubTreeOrder::root);
 	maxBoundingBox = 1;
 	maxDepth = 1;
+	volumeData = NULL;
 }
 
 void OccupancyHistogramTree::setMaxNode(int max) {
@@ -62,6 +68,10 @@ void OccupancyHistogramTree::setCameraPos(glm::vec3 pos){
 
 void OccupancyHistogramTree::PropagateOccupancyHistograms(OHTreeNode* node) {
 	node->initHistogram();
+	if (node->isLeaf()) {
+		node->occupancyHistogram[(int)node->occupancyClass] = 1;
+		return;
+	}
 	for (int i = 0; i < 8; i++) {
 		PropagateOccupancyHistograms(node->children[i]);
 	}
@@ -86,6 +96,10 @@ void OccupancyHistogramTree::PropagateOccupancyHistograms(OHTreeNode* node) {
 	node->occupancyClass = (OccupancyClass)index;
 }
 
+void OccupancyHistogramTree::Propagation() {
+	PropagateOccupancyHistograms(root);
+}
+
 void OccupancyHistogramTree::TraversalOccupancyGeometryGeneration() {
 	std::queue<OHTreeNode*> queue;
 	queue.push(root);
@@ -106,11 +120,12 @@ void OccupancyHistogramTree::TraversalOccupancyGeometryGeneration() {
 		boxCount++;
 	}
 }
+
 void OccupancyHistogramTree::emitGeometry(OHTreeNode* node) {
 }
 
 void OccupancyHistogramTree::TraversalIndexOrder(OHTreeNode* node) {
-	OccupancyIndexArray.clear();
+	
 	if (node->isLeaf()) {
 		if (node->occupancyClass != node->parent->occupancyClass) {
 			emitIndex(node, FaceOrder::FRONT_FACE);
@@ -130,6 +145,11 @@ void OccupancyHistogramTree::TraversalIndexOrder(OHTreeNode* node) {
 			emitIndex(node, FaceOrder::BACK_FACE);
 		}
 	}
+}
+
+void OccupancyHistogramTree::TraversalIndexOrderRoot() {
+	OccupancyIndexArray.clear();
+	TraversalIndexOrder(root);
 }
 
 void OccupancyHistogramTree::emitIndex(OHTreeNode* node, FaceOrder face) {
@@ -163,15 +183,20 @@ void  OccupancyHistogramTree::subDivision(OHTreeNode* node) {
 	else {
 		for (int i = 0; i < 8; i++) {
 			node->children[i] = new OHTreeNode(node, (SubTreeOrder)i);
+			subDivision(node->children[i]);
 		}
-		node->update();
+		//node->update();
 	}
 }
 
+void OccupancyHistogramTree::subDivisionRoot() {
+	subDivision(root);
+}
+
 void OccupancyHistogramTree::sampleVolume(OHTreeNode* node) {
-	int width = 256;
-	int height = 256;
-	int depth = 225;
+	int width = 128;
+	int height = 128;
+	int depth = 128;
 
 	int size = (int)std::pow(2, maxDepth - 1);
 	glm::vec3 pos = (node->minPos + node->maxPos) * 0.5f;
@@ -183,9 +208,10 @@ void OccupancyHistogramTree::sampleVolume(OHTreeNode* node) {
 		h = y * height,
 		d = z * depth;
 	int index = d * width * height + h * width + w;
-	if (volumeData[index] < 10) {
+	if (volumeData[index] < 25) {
 		node->occupancyClass = OccupancyClass::empty;
 	}
 	else node->occupancyClass = OccupancyClass::nonEmpty;	
 }
 #endif // !OCCUPANCYHISTOGRAMTREE
+

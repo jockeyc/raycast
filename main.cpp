@@ -23,69 +23,30 @@ unsigned int load1DTexture(const char* filename);
 unsigned int loadTexture2(char const* path);
 void initGL();
 void initBufferObject();	// set up vertex data (and buffer(s)) and configure vertex attributes
+void initGeometryBufferObject();
+void initCubeBufferObject();
 void initUniformBufferObject();
-void initTexture();
-void initVolumeData();
+void initTextureImage();
+void clearTextureImage();
+void loadVolumeData();
 void initMatrix();
 void initShader();	// build and compile our shader program
 void initOccupancyHistogramTree();
+void initGeometryArray();
+void updateGeometryArray();
 void renderLoop();
+void renderLoop2();
 void destroy();
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-const unsigned int SCR_DEPTH = 300;
+const unsigned int RAY_SEGMENT_LIST_LENGTH = 120;
 
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
 bool firstMouse = true;
 float lastX = 400, lastY = 300;
-
-float vertices[] = {
-	// positions          // normals           // texture coords
-	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-
-	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-
-	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-	 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-	 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-
-	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-	 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-};
 
 float cubeVertices[] = {
 	// Back face
@@ -131,6 +92,14 @@ float cubeVertices[] = {
 	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,// top-left
 	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 1.0f// bottom-left        
 };
+float* geometryOffset;
+float* geometryScale;
+unsigned int* geometryInfo;
+unsigned int* clearData2D;
+unsigned int* clearData3DUI;
+float* clearData3DF;
+
+int geometryOffsetSize;
 
 unsigned int indices[] = {
 	0, 1, 3, // first triangle
@@ -154,11 +123,21 @@ unsigned int RaySegmentListDepthTexture3D;
 unsigned int RaySegmentListClassTexture3D;
 unsigned int RaySegmentListTypeTexture3D;
 
+unsigned int RaySegmentListCountTextureBuffer;
+unsigned int RaySegmentListDepthTextureBuffer;
+unsigned int RaySegmentListClassTextureBuffer;
+unsigned int RaySegmentListTypeTextureBuffer;
+
 unsigned char* volumeData;
 int volumeDataSize;
 
-unsigned int VBO, VAO;
+unsigned int geometryVBO, geometryVAO;
+unsigned int cubeVBO, cubeVAO;
 unsigned int UBO;
+unsigned int PBO2D,PBO3DUI,PBO3DF;
+unsigned int geometryOffsetBuffer;
+unsigned int geometryScaleBuffer;
+unsigned int geometryInfoBuffer;
 
 unsigned int texture;
 unsigned int volumeTex;
@@ -167,17 +146,23 @@ unsigned int FBO;
 
 Shader boxShader;
 Shader frontShader;
+Shader raySegmentListShader;
 
 int main()
 {
 	initGL();
 	initShader();
-	initBufferObject();
+	//initBufferObject();
+	
 	initUniformBufferObject();
-	initTexture();
-	initVolumeData();
+	loadVolumeData();
 	initMatrix();
-	renderLoop();
+	initOccupancyHistogramTree();
+	initGeometryArray();
+	initGeometryBufferObject();
+	initTextureImage();
+	renderLoop2();
+	//renderLoop();
 	destroy();
 	
 	return 0;
@@ -189,21 +174,27 @@ int main()
 
 void processInput(GLFWwindow * window)
 {
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
-
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		camera.ProcessKeyboard(FORWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
 		camera.ProcessKeyboard(BACKWARD, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	}
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
 		camera.ProcessKeyboard(LEFT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
 		camera.ProcessKeyboard(RIGHT, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	}
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 		camera.ProcessKeyboard(UP, deltaTime);
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	}
+	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
 		camera.ProcessKeyboard(DOWN, deltaTime);
+	}
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -231,8 +222,9 @@ void mouse_callback(GLFWwindow * window, double xpos, double ypos)
 
 	lastX = xpos;
 	lastY = ypos;
-
+	if (xoffset != 0 || yoffset != 0) updateGeometryArray();
 	camera.ProcessMouseMovement(xoffset, yoffset);
+	
 }
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
@@ -416,29 +408,33 @@ unsigned int load1DTexture(const char* filename)
 	return tff1DTex;
 }
 
-unsigned int gen3DTexture(unsigned int w, unsigned int h, unsigned int d) {
-	unsigned int textureID;
+unsigned int gen3DImage(unsigned int w, unsigned int h, unsigned int d, unsigned int& textureID, bool isFloat) {
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_3D, textureID);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+	if (isFloat) {
+		//glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, w, h, d, 0, GL_RED, GL_FLOAT, NULL);
+		glTexStorage3D(GL_TEXTURE_3D, 1, GL_R32F, w, h, d);
+	}
+	else{
+		//glTexImage3D(GL_TEXTURE_3D, 0, GL_R32UI, w, h, d, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+		glTexStorage3D(GL_TEXTURE_3D, 1, GL_R32UI, w, h, d);
+	}
+	glBindTexture(GL_TEXTURE_3D, 0);
+
 	return textureID;
 }
 
-unsigned int gen2DTexture(unsigned int w, unsigned int h) {
-	unsigned int textureID;
+unsigned int gen2DImage(unsigned int w, unsigned int h, unsigned int& textureID) {
+
 	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, w, h, 0, GL_RED, GL_UNSIGNED_BYTE, NULL);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, w, h, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32UI, w, h);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
-	//delete[]volumeData;
-	cout << "volume texture created" << endl;
 	return textureID;
 }
+
 void initGL() {
 	// glfw: initialize and configure
 	// ------------------------------
@@ -470,12 +466,12 @@ void initGL() {
 }
 
 void initBufferObject(){
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glBindVertexArray(VAO);
+	glGenVertexArrays(1, &geometryVAO);
+	glGenBuffers(1, &geometryVBO);
+	glBindVertexArray(geometryVAO);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);;
+	glBindBuffer(GL_ARRAY_BUFFER, geometryVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
 
 	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
@@ -488,6 +484,73 @@ void initBufferObject(){
 	FBO = initFrameBuffer(texture);
 }
 
+void initGeometryBufferObject() {
+	glGenVertexArrays(1, &geometryVAO);
+	glGenBuffers(1, &geometryVBO);
+	glGenBuffers(1, &geometryOffsetBuffer);
+	glGenBuffers(1, &geometryScaleBuffer);
+	glGenBuffers(1, &geometryInfoBuffer);
+
+	glBindVertexArray(geometryVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, geometryVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, geometryOffsetBuffer);
+	glBufferData(GL_ARRAY_BUFFER, geometryOffsetSize * sizeof(float), geometryOffset, GL_STREAM_DRAW);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribDivisor(2, 1);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, geometryScaleBuffer);
+	glBufferData(GL_ARRAY_BUFFER, geometryOffsetSize / 3 * sizeof(float), geometryScale, GL_STREAM_DRAW);
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 1 * sizeof(float), (void*)0);
+	glVertexAttribDivisor(3, 1);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindBuffer(GL_ARRAY_BUFFER, geometryInfoBuffer);
+	glBufferData(GL_ARRAY_BUFFER, geometryOffsetSize * sizeof(unsigned int), geometryInfo, GL_STREAM_DRAW);
+	glEnableVertexAttribArray(4);
+	glEnableVertexAttribArray(5);
+	glEnableVertexAttribArray(6);
+	glVertexAttribIPointer(4, 1, GL_UNSIGNED_INT, 3 * sizeof(unsigned int), (void*)0);
+	glVertexAttribIPointer(5, 1, GL_UNSIGNED_INT, 3 * sizeof(unsigned int), (void*)(1 * sizeof(unsigned int)));
+	glVertexAttribIPointer(6, 1, GL_UNSIGNED_INT, 3 * sizeof(unsigned int), (void*)(2 * sizeof(unsigned int)));
+	glVertexAttribDivisor(4, 1);
+	glVertexAttribDivisor(5, 1);
+	glVertexAttribDivisor(6, 1);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+	
+	// position attribute
+	FBO = initFrameBuffer(texture);
+}
+
+void initCubeBufferObject(){
+	glGenVertexArrays(1, &cubeVAO);
+	glGenBuffers(1, &cubeVBO);
+
+	glBindVertexArray(geometryVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glBindVertexArray(0);
+}
+
 void initUniformBufferObject() {
 	glGenBuffers(1, &UBO);
 	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
@@ -497,15 +560,90 @@ void initUniformBufferObject() {
 	glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBO);
 }
 
-void initTexture() {
-	RaySegmentListCountTexture2D = gen2DTexture(SCR_WIDTH,SCR_HEIGHT);
-	
-	RaySegmentListDepthTexture3D = gen3DTexture(SCR_WIDTH, SCR_HEIGHT, SCR_DEPTH);
-	RaySegmentListClassTexture3D = gen3DTexture(SCR_WIDTH, SCR_HEIGHT, SCR_DEPTH);
-	RaySegmentListTypeTexture3D = gen3DTexture(SCR_WIDTH, SCR_HEIGHT, SCR_DEPTH);
+void initTextureImage() {
+	RaySegmentListCountTextureBuffer = gen2DImage(SCR_WIDTH, SCR_HEIGHT, RaySegmentListCountTexture2D);
+	RaySegmentListDepthTextureBuffer = gen3DImage(SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, RaySegmentListDepthTexture3D, true);
+	RaySegmentListClassTextureBuffer = gen3DImage(SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, RaySegmentListClassTexture3D, false);
+	RaySegmentListTypeTextureBuffer = gen3DImage(SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, RaySegmentListTypeTexture3D, false);
+
+	glBindImageTexture(0, RaySegmentListCountTexture2D, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+	glBindImageTexture(1, RaySegmentListDepthTexture3D, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+	glBindImageTexture(2, RaySegmentListClassTexture3D, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+	glBindImageTexture(3, RaySegmentListTypeTexture3D, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+
+	glGenBuffers(1, &PBO2D);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO2D);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, SCR_WIDTH * SCR_HEIGHT * sizeof(GLuint), NULL, GL_STATIC_COPY);
+	unsigned int*  ptr = (unsigned int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_READ_WRITE);
+	memset(ptr, 0, SCR_WIDTH * SCR_HEIGHT * sizeof(GLuint));
+	glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+	glGenBuffers(1, &PBO3DUI);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO3DUI);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, SCR_WIDTH * SCR_HEIGHT * RAY_SEGMENT_LIST_LENGTH * sizeof(GLuint), NULL, GL_STATIC_COPY);
+	unsigned int* ptr1 = (unsigned int*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_READ_WRITE);
+	memset(ptr1, 0, SCR_WIDTH * SCR_HEIGHT * RAY_SEGMENT_LIST_LENGTH * sizeof(GLuint));
+	glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+	glGenBuffers(1, &PBO3DF);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO3DF);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, SCR_WIDTH * SCR_HEIGHT * RAY_SEGMENT_LIST_LENGTH * sizeof(GLfloat), NULL, GL_STATIC_COPY);
+	float* ptr2 = (float*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_READ_WRITE);
+	memset(ptr2, 0, SCR_WIDTH * SCR_HEIGHT * RAY_SEGMENT_LIST_LENGTH * sizeof(GLfloat));
+	glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+	/*clearData2D = new unsigned int[SCR_WIDTH * SCR_HEIGHT];
+	memset(clearData2D, 0, SCR_WIDTH * SCR_HEIGHT * sizeof(unsigned int));
+	clearData3DUI = new unsigned int[SCR_WIDTH * SCR_HEIGHT * RAY_SEGMENT_LIST_LENGTH];
+	memset(clearData3DUI, 0, SCR_WIDTH * SCR_HEIGHT * RAY_SEGMENT_LIST_LENGTH * sizeof(unsigned int));
+	clearData3DF = new float[SCR_WIDTH * SCR_HEIGHT * RAY_SEGMENT_LIST_LENGTH];
+	memset(clearData3DF, 0, SCR_WIDTH * SCR_HEIGHT * RAY_SEGMENT_LIST_LENGTH * sizeof(float));*/
 }
 
-void initVolumeData() {
+void clearTextureImage(){
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO2D);
+	glBindTexture(GL_TEXTURE_2D, RaySegmentListCountTexture2D);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+	glBindTexture(GL_TEXTURE_2D, 0);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO3DF);
+	glBindTexture(GL_TEXTURE_3D, RaySegmentListDepthTexture3D);
+	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, GL_RED, GL_FLOAT, NULL);
+	glBindTexture(GL_TEXTURE_3D, 0);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO3DUI);
+	glBindTexture(GL_TEXTURE_3D, RaySegmentListClassTexture3D);
+	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+	glBindTexture(GL_TEXTURE_3D, 0);
+	glBindTexture(GL_TEXTURE_3D, RaySegmentListTypeTexture3D);
+	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+	glBindTexture(GL_TEXTURE_3D, 0);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+	/*glBindTexture(GL_TEXTURE_2D, RaySegmentListCountTexture2D);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RED_INTEGER, GL_UNSIGNED_INT, clearData2D);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindTexture(GL_TEXTURE_3D, RaySegmentListDepthTexture3D);
+	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, GL_RED, GL_FLOAT, clearData3DF);
+	glBindTexture(GL_TEXTURE_3D, 0);
+
+	glBindTexture(GL_TEXTURE_3D, RaySegmentListClassTexture3D);
+	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, GL_RED_INTEGER, GL_UNSIGNED_INT, clearData3DUI);
+	glBindTexture(GL_TEXTURE_3D, 0);
+
+	glBindTexture(GL_TEXTURE_3D, RaySegmentListTypeTexture3D);
+	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, GL_RED_INTEGER, GL_UNSIGNED_INT, clearData3DUI);
+	glBindTexture(GL_TEXTURE_3D, 0);*/
+
+}
+
+void loadVolumeData() {
 	volumeTex = load3DTexture("2pic2.tif", 128, 128, 128);
 	tex1d = loadTexture2("test.png");
 }
@@ -522,17 +660,73 @@ void initMatrix() {
 }
 
 void initShader() {
-	boxShader=Shader("boxShader.vs", "boxShader.fs");
-	frontShader=Shader("frontShader.vs", "frontShader.fs");
+	boxShader=Shader("StandardBackVertex.glsl", "StandardBackFragment.glsl");
+	frontShader=Shader("StandardFrontVertex.glsl", "StandardFrontFragment.glsl");
+	raySegmentListShader = Shader("RaySegmentListVertex.glsl", "RaySegmentListFragment.glsl");
 }
 
 void initOccupancyHistogramTree() {
 	occupancyHistogramTree = new OccupancyHistogramTree();
-	occupancyHistogramTree->setMaxDepth(9);
+	occupancyHistogramTree->setMaxDepth(8);
 	occupancyHistogramTree->setPosition(glm::vec3(-0.5f), glm::vec3(0.5f));
 	occupancyHistogramTree->setCameraPos(camera.Position);
 	occupancyHistogramTree->setVolumeData(volumeData);
 	occupancyHistogramTree->setMaxNode(16777216);
+	occupancyHistogramTree->subDivisionRoot();
+	occupancyHistogramTree->Propagation();
+	
+}
+
+void initGeometryArray(){
+	occupancyHistogramTree->TraversalIndexOrderRoot();
+	glm::vec3 geometryCenter;
+	geometryOffsetSize = occupancyHistogramTree->OccupancyIndexArray.size()*3;
+	geometryOffset = new float[geometryOffsetSize];
+	geometryScale = new float[geometryOffsetSize / 3];
+	geometryInfo = new unsigned int[geometryOffsetSize];
+	int offsetIndex = 0,infoIndex=0;
+	for (int i = 0; i < geometryOffsetSize/3 ; i++) {
+		OHTreeNode* node = occupancyHistogramTree->OccupancyIndexArray[i]->node;
+		NodeInfo* nodeInfo = occupancyHistogramTree->OccupancyIndexArray[i];
+		geometryCenter = (node->minPos + node->maxPos)* 0.5f;
+		geometryOffset[offsetIndex++] = geometryCenter.x;
+		geometryOffset[offsetIndex++] = geometryCenter.y;
+		geometryOffset[offsetIndex++] = geometryCenter.z;
+		geometryScale[i] = (node->maxPos.x - node->minPos.x) / 1.0f;
+		geometryInfo[infoIndex++] = (unsigned int)nodeInfo->faceOrder;
+		geometryInfo[infoIndex++] = (unsigned int)node->occupancyClass;
+		geometryInfo[infoIndex++] = (unsigned int)node->parent->occupancyClass;
+	}
+}
+
+void updateGeometryArray(){
+	occupancyHistogramTree->TraversalIndexOrderRoot();
+	glm::vec3 geometryCenter;
+	int offsetIndex = 0, infoIndex = 0;
+	for (int i = 0; i < geometryOffsetSize / 3; i++) {
+		OHTreeNode* node = occupancyHistogramTree->OccupancyIndexArray[i]->node;
+		NodeInfo* nodeInfo = occupancyHistogramTree->OccupancyIndexArray[i];
+		geometryCenter = (node->minPos + node->maxPos) * 0.5f;
+		geometryOffset[offsetIndex++] = geometryCenter.x;
+		geometryOffset[offsetIndex++] = geometryCenter.y;
+		geometryOffset[offsetIndex++] = geometryCenter.z;
+		geometryScale[i] = (node->maxPos.x - node->minPos.x) / 1.0f;
+		geometryInfo[infoIndex++] = (unsigned int)nodeInfo->faceOrder;
+		geometryInfo[infoIndex++] = (unsigned int)node->occupancyClass;
+		geometryInfo[infoIndex++] = (unsigned int)node->parent->occupancyClass;
+	}
+
+	glBindVertexArray(geometryVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, geometryOffsetBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, geometryOffsetSize * sizeof(float), geometryOffset);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, geometryScaleBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, geometryOffsetSize /3 * sizeof(float), geometryScale);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, geometryInfoBuffer);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, geometryOffsetSize * sizeof(float), geometryInfo);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void renderLoop(){
@@ -572,7 +766,7 @@ void renderLoop(){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 我们现在不使用模板缓冲
 		glEnable(GL_DEPTH_TEST);
 		boxShader.use();
-		glBindVertexArray(VAO);
+		glBindVertexArray(geometryVAO);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -582,7 +776,7 @@ void renderLoop(){
 		// 第二处理阶段
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // 返回默认
 		frontShader.use();
-		glBindVertexArray(VAO);
+		glBindVertexArray(geometryVAO);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
@@ -609,9 +803,61 @@ void renderLoop(){
 	}
 }
 
+void renderLoop2() {
+	while (!glfwWindowShouldClose(window))
+	{
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
+		view = lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
+		//rot = glm::rotate(rot, glm::radians(1.0f), glm::vec3(0, 1, 0));
+		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, &(rot * model));
+		glBufferSubData(GL_UNIFORM_BUFFER, 64, 64, &view);
+		glBufferSubData(GL_UNIFORM_BUFFER, 128, 64, &projection);
+		glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+		// input
+		// -----
+		processInput(window);
+
+		// bind Texture
+		clearTextureImage();
+		
+		// render container
+		// render
+		// ------
+		// 第一处理阶段
+		glDisable(GL_DEPTH_TEST);
+		//glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		//glEnable(GL_CULL_FACE);
+		
+		raySegmentListShader.use();
+		raySegmentListShader.setVec3("cameraPos", camera.Position);
+		glBindVertexArray(geometryVAO);
+		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, geometryOffsetSize/3);
+		glBindVertexArray(0);
+
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+		// -------------------------------------------------------------------------------
+		glfwSwapBuffers(window);
+		glfwPollEvents();
+	}
+}
+
+void renderRaySegmentList() {
+
+}
+
 void destroy() {
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
+	glDeleteVertexArrays(1, &geometryVAO);
+	glDeleteBuffers(1, &geometryVBO);
 
 	glfwTerminate();
 }

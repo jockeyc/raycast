@@ -52,25 +52,28 @@
     <None Include="shader.fs">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="boxShader.fs">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="boxShader.vs">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="frontShader.fs">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="frontShader.vs">
-      <Filter>资源文件</Filter>
-    </None>
     <None Include="head256.raw">
       <Filter>资源文件</Filter>
     </None>
     <None Include="tff.dat">
       <Filter>资源文件</Filter>
     </None>
-    <None Include="testShader.fs">
+    <None Include="RaySegmentListVertex.glsl">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="RaySegmentListFragment.glsl">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="StandardBackFragment.glsl">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="StandardBackVertex.glsl">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="StandardFrontFragment.glsl">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="StandardFrontVertex.glsl">
       <Filter>资源文件</Filter>
     </None>
   </ItemGroup>

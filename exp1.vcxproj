@@ -143,13 +143,14 @@
     <ClInclude Include="model.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="boxShader.fs" />
-    <None Include="boxShader.vs" />
-    <None Include="frontShader.fs" />
+    <None Include="RaySegmentListVertex.glsl" />
+    <None Include="StandardBackFragment.glsl" />
+    <None Include="StandardBackVertex.glsl" />
+    <None Include="StandardFrontFragment.glsl" />
     <None Include="head256.raw" />
     <None Include="shader.fs" />
-    <None Include="frontShader.vs" />
-    <None Include="testShader.fs" />
+    <None Include="StandardFrontVertex.glsl" />
+    <None Include="RaySegmentListFragment.glsl" />
     <None Include="tff.dat" />
   </ItemGroup>
   <ItemGroup>

@@ -1,9 +1,9 @@
 #ifndef OHTREENODE
 #define OHTREENODE
 #include <glm/glm.hpp>
-enum FaceOrder{
-	FRONT_FACE,
-	BACK_FACE
+enum FaceOrder : int{
+	FRONT_FACE =0,
+	BACK_FACE =1
 };
 enum class OccupancyClass : int {
 	empty = 0,
