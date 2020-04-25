@@ -99,4 +99,17 @@ public:
 		memset(children, NULL, sizeof(OHTreeNode*) * 8);
 	}
 };
+
+struct GeometryNode {
+public:
+	GeometryNode* children[8];
+	GeometryNode* parent;
+	OccupancyClass occupancyClass;
+	OHTreeNode* realNode;
+	GeometryNode(GeometryNode* p, OHTreeNode* node) {
+		parent = p;
+		occupancyClass = node->occupancyClass;
+		realNode = node;
+	}
+};
 #endif // !OHTREENODE
