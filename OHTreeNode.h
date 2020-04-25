@@ -106,6 +106,10 @@ public:
 	GeometryNode* parent;
 	OccupancyClass occupancyClass;
 	OHTreeNode* realNode;
+	GeometryNode(OHTreeNode* node) {
+		parent = NULL;
+		realNode = node;
+	}
 	GeometryNode(GeometryNode* p, OHTreeNode* node) {
 		parent = p;
 		occupancyClass = node->occupancyClass;
