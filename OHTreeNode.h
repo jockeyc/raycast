@@ -109,11 +109,13 @@ public:
 	GeometryNode(OHTreeNode* node) {
 		parent = NULL;
 		realNode = node;
+		memset(children, NULL, sizeof(GeometryNode*) * 8);
 	}
 	GeometryNode(GeometryNode* p, OHTreeNode* node) {
 		parent = p;
 		occupancyClass = node->occupancyClass;
 		realNode = node;
+		memset(children, NULL, sizeof(GeometryNode*) * 8);
 	}
 };
 #endif // !OHTREENODE

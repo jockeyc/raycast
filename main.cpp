@@ -674,7 +674,7 @@ void initOccupancyHistogramTree() {
 	occupancyHistogramTree->setMaxNode(16777216);
 	occupancyHistogramTree->subDivisionRoot();
 	occupancyHistogramTree->Propagation();
-	
+	occupancyHistogramTree->TraversalOccupancyGeometryGeneration();
 }
 
 void initGeometryArray(){
