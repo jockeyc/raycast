@@ -131,7 +131,7 @@ void OccupancyHistogramTree::emitGeometry(OHTreeNode* node) {
 	}
 }
 
-void OccupancyHistogramTree::InsertGeometryNode(GeometryNode* Gnode, OHTreeNode* node){
+void OccupancyHistogramTree::InsertGeometryNode(GeometryNode* Gnode, OHTreeNode* node){	//0330 0
 	SubTreeOrder order = getSpaceOrder(Gnode->realNode, node);
 	if (Gnode->children[(int)order] == NULL && node->parent==Gnode->realNode) {
 		Gnode->children[(int)order] = new GeometryNode(Gnode, node);
@@ -140,7 +140,10 @@ void OccupancyHistogramTree::InsertGeometryNode(GeometryNode* Gnode, OHTreeNode*
 		Gnode->children[(int)order] = new GeometryNode(Gnode, Gnode->realNode->children[(int)order]);
 		InsertGeometryNode(Gnode->children[(int)order], node);
 	}
-	else {
+	else if (Gnode->children[(int)order]->realNode == node) {
+		return;
+	}
+	else{
 		InsertGeometryNode(Gnode->children[(int)order], node);
 	}
 }
@@ -224,7 +227,7 @@ void OccupancyHistogramTree::getSubOrder(GeometryNode * node, std::vector<SubTre
 {
 	std::map<SubTreeOrder, float> subCenter;
 	for (int i = 0; i < 8; i++) {
-		if (node->realNode->children[i]) {
+		if (node->children[i]) {
 			float distance = glm::distance((node->realNode->children[i]->minPos + node->realNode->children[i]->maxPos) * 0.5f, CameraPos);
 			subCenter.insert(std::pair<SubTreeOrder, float>((SubTreeOrder)i, distance));
 		}

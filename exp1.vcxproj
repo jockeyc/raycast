@@ -144,6 +144,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="RaySegmentListVertex.glsl" />
+    <None Include="SparseLeapFragment.glsl" />
+    <None Include="SparseLeapVertex.glsl" />
     <None Include="StandardBackFragment.glsl" />
     <None Include="StandardBackVertex.glsl" />
     <None Include="StandardFrontFragment.glsl" />

@@ -41,7 +41,7 @@ void destroy();
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-const unsigned int RAY_SEGMENT_LIST_LENGTH = 120;
+const unsigned int RAY_SEGMENT_LIST_LENGTH = 60;
 
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
@@ -147,6 +147,7 @@ unsigned int FBO;
 Shader boxShader;
 Shader frontShader;
 Shader raySegmentListShader;
+Shader sparseLeapShader;
 
 int main()
 {
@@ -160,6 +161,7 @@ int main()
 	initOccupancyHistogramTree();
 	initGeometryArray();
 	initGeometryBufferObject();
+	initCubeBufferObject();
 	initTextureImage();
 	renderLoop2();
 	//renderLoop();
@@ -538,7 +540,7 @@ void initCubeBufferObject(){
 	glGenVertexArrays(1, &cubeVAO);
 	glGenBuffers(1, &cubeVBO);
 
-	glBindVertexArray(geometryVAO);
+	glBindVertexArray(cubeVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
@@ -663,6 +665,7 @@ void initShader() {
 	boxShader=Shader("StandardBackVertex.glsl", "StandardBackFragment.glsl");
 	frontShader=Shader("StandardFrontVertex.glsl", "StandardFrontFragment.glsl");
 	raySegmentListShader = Shader("RaySegmentListVertex.glsl", "RaySegmentListFragment.glsl");
+	sparseLeapShader = Shader("SparseLeapVertex.glsl", "SparseLeapFragment.glsl");
 }
 
 void initOccupancyHistogramTree() {
@@ -830,10 +833,9 @@ void renderLoop2() {
 		// ------
 		// 第一处理阶段
 		glDisable(GL_DEPTH_TEST);
-		//glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		//glEnable(GL_CULL_FACE);
 		
 		raySegmentListShader.use();
 		raySegmentListShader.setVec3("cameraPos", camera.Position);
@@ -841,9 +843,31 @@ void renderLoop2() {
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, geometryOffsetSize/3);
 		glBindVertexArray(0);
 
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+		glClear(GL_COLOR_BUFFER_BIT);
+		
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
 
+		sparseLeapShader.use();
+		sparseLeapShader.setInt("exitPoints", 0);
+		sparseLeapShader.setInt("volume", 1);
+		sparseLeapShader.setInt("transferFunc", 2);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_3D, volumeTex);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_1D, tex1d);
+
+		sparseLeapShader.setVec3("viewPoint", camera.Position);
+		glBindVertexArray(cubeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+
+		glDisable(GL_CULL_FACE);
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(window);

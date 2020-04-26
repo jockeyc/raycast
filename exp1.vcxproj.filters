@@ -76,6 +76,12 @@
     <None Include="StandardFrontVertex.glsl">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="SparseLeapFragment.glsl">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="SparseLeapVertex.glsl">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="container.jpg">

@@ -46,7 +46,7 @@ public:
 				0.5f - (float)(1 & ((int)order >> 1)),
 				0.5f - (float)(1 & (int)order));
 			glm::vec3 parentCenter = (parent->minPos + parent->maxPos) * 0.5f;
-			glm::vec3 center = parentCenter + offset * size;
+			glm::vec3 center = parentCenter + offset * size * 2.0f;
 			minPos = center - glm::vec3(size);
 			maxPos = center + glm::vec3(size);
 			depth = parent->depth + 1;	
