@@ -14,6 +14,7 @@ layout(binding = 0, r32ui) uniform uimage2D CountTexture2D;
 layout(binding = 1, r32f) uniform image3D DepthTexture3D;
 layout(binding = 2, r32ui) uniform uimage3D ClassTexture3D;
 layout(binding = 3, r32ui) uniform uimage3D TypeTexture3D;
+layout(binding = 4, rgba32f) uniform image2D FrontPositionTexture2D;
 
 out vec4 FragColor;
 
@@ -134,12 +135,16 @@ void main()
 {
 	beginInvocationInterlockARB();
 	bool isFrontFace = (faceOrder == 0);
-	float dist = distance(position, cameraPos);
+	
 	if ((!gl_FrontFacing && isFrontFace) || (gl_FrontFacing && !isFrontFace)) {
 		discard;
 	}
 	GetRaySegmentList();
-	//if (parentClass == 3) discard;
+	if (parentClass == 3 && gl_FrontFacing) {
+		imageStore(FrontPositionTexture2D, ivec2(gl_FragCoord.xy), vec4(position, 0.0f));
+	}
+	vec3 frontPos = imageLoad(FrontPositionTexture2D, ivec2(gl_FragCoord.xy)).xyz;
+	float dist = distance(position, frontPos);
 	if (isFrontFace) {
 		AddRayEvent(dist, faceOrder, nodeClass);
 	}

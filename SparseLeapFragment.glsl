@@ -3,20 +3,23 @@
 in vec3 EntryPoint;
 in vec3 texCoord;
 
-//uniform sampler2D exitPoints;
+uniform sampler2D exitPoints;
 uniform sampler3D volume;
 uniform sampler1D transferFunc;
 uniform float StepSize = 0.001f;
 uniform vec3 viewPoint;
+uniform vec2 ScreenSize = vec2(800, 600);
 layout(binding = 0, r32ui) uniform uimage2D CountTexture2D;
 layout(binding = 1, r32f) uniform image3D DepthTexture3D;
 layout(binding = 2, r32ui) uniform uimage3D ClassTexture3D;
 layout(binding = 3, r32ui) uniform uimage3D TypeTexture3D;
+layout(binding = 4, rgba32f) uniform image2D FrontPositionTexture2D;
 	
 layout(location = 0) out vec4 FragColor;
 
 uint currentLength = 0;
 uint listLength = 0;
+vec3 frontPos;
 vec3 dir;
 vec3 deltaDir;
 float deltaDirLen;
@@ -48,7 +51,7 @@ bool ListIsEmpty() {
 }
 
 bool Sample(Event eventSegBegin, Event eventSegEnd) {
-	vec3 beginPos = viewPoint + normalize(dir) * eventSegBegin.depth;
+	vec3 beginPos = texCoord + normalize(dir) * eventSegBegin.depth;
 	vec3 voxelCoord = beginPos;
 	float DepthAcum = eventSegBegin.depth;
 	bool flag = false;
@@ -77,10 +80,10 @@ bool Sample(Event eventSegBegin, Event eventSegEnd) {
 }
 
 void main() {
-	dir = EntryPoint - viewPoint;
+	vec3 exitPoint = texture(exitPoints, gl_FragCoord.st / ScreenSize).xyz;
+	dir = exitPoint - EntryPoint;
 	deltaDir = normalize(dir) * StepSize;
 	deltaDirLen = length(deltaDir);
-	listLength = imageLoad(CountTexture2D, ivec2(gl_FragCoord.xy)).x;
 	
 	Event eventSegBegin = GetNextRayEvent();
 	Event eventSegEnd;

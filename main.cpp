@@ -124,6 +124,8 @@ unsigned int RaySegmentListDepthTexture3D;
 unsigned int RaySegmentListClassTexture3D;
 unsigned int RaySegmentListTypeTexture3D;
 
+unsigned int FrontFacePositionTexture2D;
+
 unsigned int RaySegmentListCountTextureBuffer;
 unsigned int RaySegmentListDepthTextureBuffer;
 unsigned int RaySegmentListClassTextureBuffer;
@@ -135,7 +137,7 @@ int volumeDataSize;
 unsigned int geometryVBO, geometryVAO;
 unsigned int cubeVBO, cubeVAO;
 unsigned int UBO;
-unsigned int PBO2D,PBO3DUI,PBO3DF;
+unsigned int PBO2D,PBO3DUI,PBO3DF,PBO;	//Pxiel buffer object for cleaning texture data;
 unsigned int geometryOffsetBuffer;
 unsigned int geometryScaleBuffer;
 unsigned int geometryInfoBuffer;
@@ -438,6 +440,16 @@ unsigned int gen2DImage(unsigned int w, unsigned int h, unsigned int& textureID)
 	return textureID;
 }
 
+unsigned int genPosition2DImagee(unsigned int w, unsigned int h, unsigned int& textureID) {
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, w, h, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, w, h);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	return textureID;
+}
+
 void initGL() {
 	// glfw: initialize and configure
 	// ------------------------------
@@ -564,15 +576,17 @@ void initUniformBufferObject() {
 }
 
 void initTextureImage() {
-	RaySegmentListCountTextureBuffer = gen2DImage(SCR_WIDTH, SCR_HEIGHT, RaySegmentListCountTexture2D);
-	RaySegmentListDepthTextureBuffer = gen3DImage(SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, RaySegmentListDepthTexture3D, true);
-	RaySegmentListClassTextureBuffer = gen3DImage(SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, RaySegmentListClassTexture3D, false);
-	RaySegmentListTypeTextureBuffer = gen3DImage(SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, RaySegmentListTypeTexture3D, false);
+	gen2DImage(SCR_WIDTH, SCR_HEIGHT, RaySegmentListCountTexture2D);
+	gen3DImage(SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, RaySegmentListDepthTexture3D, true);
+	gen3DImage(SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, RaySegmentListClassTexture3D, false);
+	gen3DImage(SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, RaySegmentListTypeTexture3D, false);
+	genPosition2DImagee(SCR_WIDTH, SCR_HEIGHT, FrontFacePositionTexture2D);
 
 	glBindImageTexture(0, RaySegmentListCountTexture2D, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 	glBindImageTexture(1, RaySegmentListDepthTexture3D, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
 	glBindImageTexture(2, RaySegmentListClassTexture3D, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
 	glBindImageTexture(3, RaySegmentListTypeTexture3D, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32UI);
+	glBindImageTexture(4, FrontFacePositionTexture2D, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
 	glGenBuffers(1, &PBO2D);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO2D);
@@ -595,6 +609,14 @@ void initTextureImage() {
 	glBufferData(GL_PIXEL_UNPACK_BUFFER, SCR_WIDTH * SCR_HEIGHT * RAY_SEGMENT_LIST_LENGTH * sizeof(GLfloat), NULL, GL_STATIC_COPY);
 	float* ptr2 = (float*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_READ_WRITE);
 	memset(ptr2, 0, SCR_WIDTH * SCR_HEIGHT * RAY_SEGMENT_LIST_LENGTH * sizeof(GLfloat));
+	glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+	glGenBuffers(1, &PBO);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, SCR_WIDTH * SCR_HEIGHT * 4 * sizeof(GLfloat), NULL, GL_STATIC_COPY);
+	float* ptr3 = (float*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_READ_WRITE);
+	memset(ptr3, 0, SCR_WIDTH * SCR_HEIGHT * 4 * sizeof(GLfloat));
 	glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
@@ -626,6 +648,12 @@ void clearTextureImage(){
 	glBindTexture(GL_TEXTURE_3D, RaySegmentListTypeTexture3D);
 	glTexSubImage3D(GL_TEXTURE_3D, 0, 0, 0, 0, SCR_WIDTH, SCR_HEIGHT, RAY_SEGMENT_LIST_LENGTH, GL_RED_INTEGER, GL_UNSIGNED_INT, NULL);
 	glBindTexture(GL_TEXTURE_3D, 0);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
+	glBindTexture(GL_TEXTURE_2D, FrontFacePositionTexture2D);
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_RGBA, GL_FLOAT, NULL);
+	glBindTexture(GL_TEXTURE_2D, 0);
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
 	/*glBindTexture(GL_TEXTURE_2D, RaySegmentListCountTexture2D);
@@ -842,7 +870,7 @@ void renderLoop2() {
 		glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		//glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		raySegmentListShader.use();
 		raySegmentListShader.setVec3("cameraPos", camera.Position);
@@ -852,11 +880,11 @@ void renderLoop2() {
 		i = i + 3;
 		glBindVertexArray(0);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		glClear(GL_COLOR_BUFFER_BIT);
 		
-		glEnable(GL_CULL_FACE);
+		/*glEnable(GL_CULL_FACE);
 		glCullFace(GL_BACK);
 
 		sparseLeapShader.use();
@@ -873,7 +901,49 @@ void renderLoop2() {
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 
+		glDisable(GL_CULL_FACE);*/
+
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 我们现在不使用模板缓冲
+		glEnable(GL_DEPTH_TEST);
+		boxShader.use();
+		glBindVertexArray(cubeVAO);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_FRONT);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
+
+		// 第二处理阶段
+		glBindFramebuffer(GL_FRAMEBUFFER, 0); // 返回默认
+		sparseLeapShader.use();
+
+		sparseLeapShader.setInt("exitPoints", 0);
+		sparseLeapShader.setInt("volume", 1);
+		sparseLeapShader.setInt("transferFunc", 2);
+
+		
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_3D, volumeTex);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_1D, tex1d);
+
+
+		//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+
+		glBindVertexArray(cubeVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+
+		glDisable(GL_CULL_FACE);
+		
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(window);
