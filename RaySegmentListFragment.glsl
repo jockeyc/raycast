@@ -6,6 +6,7 @@ layout(pixel_interlock_ordered) in;
 flat in uint faceOrder;
 flat in uint nodeClass;
 flat in uint parentClass;
+flat in int id;
 in vec3 position;
 in vec3 color;
 
@@ -24,7 +25,7 @@ struct Event {
 	uint eventClass;
 };
 uint Length;
-float closeDistance = 0.05f;
+float closeDistance = 0.1f;
 
 void GetRaySegmentList() {
 	Length = imageLoad(CountTexture2D, ivec2(gl_FragCoord.xy)).x;
@@ -145,6 +146,9 @@ void main()
 	else {
 		AddRayEvent(dist, faceOrder, parentClass);
 	}
-	FragColor = vec4(color, 1);
+	//FragColor = vec4(color, 1);
+	float a = float(id);
+	a = a / 27596f;
+	FragColor = vec4(vec3(a), 1);
 	endInvocationInterlockARB();
 }

@@ -30,7 +30,7 @@ void main(){
     vec4 bgColor = vec4(1.0, 1.0, 1.0, 0.0);
 	
 	vec4 temp = texture(volume, voxelCoord);
-    for(int i = 0; i < 1600; i++){
+    for(int i = 0; i < 2000; i++){
     	intensity =  texture(volume, voxelCoord).x;	// 获得体数据中的标量 
     	colorSample = texture(transferFunc, intensity);	//通过传递函数进行查询
 

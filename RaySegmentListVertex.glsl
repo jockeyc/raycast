@@ -18,6 +18,7 @@ flat out uint nodeClass;
 flat out uint parentClass;
 out vec3 position;
 out vec3 color;
+flat out int id;
 
 void main()
 {
@@ -27,4 +28,5 @@ void main()
 	parentClass = aParentClass;
 	position = vec3(model * vec4((aPos * scale + offset), 1));
 	color = texacoord;
+	id = gl_InstanceID;
 }

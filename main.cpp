@@ -115,6 +115,7 @@ glm::mat4 projection;
 glm::mat4 rot;
 
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+int i = 0;
 
 OccupancyHistogramTree* occupancyHistogramTree;
 
@@ -651,8 +652,8 @@ void loadVolumeData() {
 }
 
 void initMatrix() {
-	model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	//model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	//model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	
 
 	view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
@@ -672,7 +673,7 @@ void initOccupancyHistogramTree() {
 	occupancyHistogramTree = new OccupancyHistogramTree();
 	occupancyHistogramTree->setMaxDepth(8);
 	occupancyHistogramTree->setPosition(glm::vec3(-0.5f), glm::vec3(0.5f));
-	occupancyHistogramTree->setCameraPos(camera.Position);
+	occupancyHistogramTree->setCameraPos(glm::vec3(0.0f, 0.0f, 3.0f));
 	occupancyHistogramTree->setVolumeData(volumeData);
 	occupancyHistogramTree->setMaxNode(16777216);
 	occupancyHistogramTree->subDivisionRoot();
@@ -688,6 +689,7 @@ void initGeometryArray(){
 	geometryScale = new float[geometryOffsetSize / 3];
 	geometryInfo = new unsigned int[geometryOffsetSize];
 	int offsetIndex = 0,infoIndex=0;
+	vector<float> v;
 	for (int i = 0; i < geometryOffsetSize/3 ; i++) {
 		OHTreeNode* node = occupancyHistogramTree->OccupancyIndexArray[i]->node;
 		NodeInfo* nodeInfo = occupancyHistogramTree->OccupancyIndexArray[i];
@@ -699,10 +701,13 @@ void initGeometryArray(){
 		geometryInfo[infoIndex++] = (unsigned int)nodeInfo->faceOrder;
 		geometryInfo[infoIndex++] = (unsigned int)node->occupancyClass;
 		geometryInfo[infoIndex++] = (unsigned int)node->parent->occupancyClass;
+		v.push_back(glm::distance(camera.Position, geometryCenter));
 	}
+
 }
 
 void updateGeometryArray(){
+	occupancyHistogramTree->setCameraPos(glm::vec3(0.0f, 0.0f, 3.0f));
 	occupancyHistogramTree->TraversalIndexOrderRoot();
 	glm::vec3 geometryCenter;
 	int offsetIndex = 0, infoIndex = 0;
@@ -740,7 +745,7 @@ void renderLoop(){
 		lastFrame = currentFrame;
 		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
 		view = lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
-		rot = glm::rotate(rot, glm::radians(1.0f), glm::vec3(0, 1, 0));
+		//rot = glm::rotate(rot, glm::radians(1.0f), glm::vec3(0, 1, 0));
 		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, 64, &(rot * model));
 		glBufferSubData(GL_UNIFORM_BUFFER, 64, 64, &view);
@@ -769,7 +774,7 @@ void renderLoop(){
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 我们现在不使用模板缓冲
 		glEnable(GL_DEPTH_TEST);
 		boxShader.use();
-		glBindVertexArray(geometryVAO);
+		glBindVertexArray(cubeVAO);
 		glEnable(GL_CULL_FACE);
 		glCullFace(GL_FRONT);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -779,7 +784,7 @@ void renderLoop(){
 		// 第二处理阶段
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // 返回默认
 		frontShader.use();
-		glBindVertexArray(geometryVAO);
+		glBindVertexArray(cubeVAO);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture);
@@ -833,14 +838,18 @@ void renderLoop2() {
 		// ------
 		// 第一处理阶段
 		glDisable(GL_DEPTH_TEST);
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
 		
+		glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		raySegmentListShader.use();
 		raySegmentListShader.setVec3("cameraPos", camera.Position);
 		glBindVertexArray(geometryVAO);
 		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, geometryOffsetSize/3);
+		//glDrawArraysInstanced(GL_TRIANGLES, 0, 36, i);
+		i = i + 3;
 		glBindVertexArray(0);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -851,12 +860,9 @@ void renderLoop2() {
 		glCullFace(GL_BACK);
 
 		sparseLeapShader.use();
-		sparseLeapShader.setInt("exitPoints", 0);
 		sparseLeapShader.setInt("volume", 1);
 		sparseLeapShader.setInt("transferFunc", 2);
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_3D, volumeTex);
 		glActiveTexture(GL_TEXTURE2);
