@@ -14,6 +14,7 @@ private:
 	unsigned char* volumeData;
 	glm::vec3 CameraPos;
 	std::vector<NodeInfo*> OccupancyGeometryArray;
+	int width, height, depth;
 	
 	//int traversalCount;
 public:
@@ -25,6 +26,7 @@ public:
 	void setPosition(glm::vec3 min, glm::vec3 max);
 	void setCameraPos(glm::vec3 pos);
 	void setVolumeData(unsigned char* data);
+	void setDataSize(int w, int h, int d);
 	void PropagateOccupancyHistograms(OHTreeNode* node);
 	void Propagation();
 	void TraversalOccupancyGeometryGeneration();
@@ -39,6 +41,7 @@ public:
 	void subDivision(OHTreeNode* node);
 	void subDivisionRoot();
 	void sampleVolume(OHTreeNode* node);
+	void rangeSampleVolume(OHTreeNode* node);
 };
 
 OccupancyHistogramTree::OccupancyHistogramTree() {
@@ -63,6 +66,12 @@ void OccupancyHistogramTree::setPosition(glm::vec3 min, glm::vec3 max) {
 
 void OccupancyHistogramTree::setVolumeData(unsigned char* data) {
 	volumeData = data;
+}
+
+void OccupancyHistogramTree::setDataSize(int w, int h, int d) {
+	width = w;
+	height = h;
+	depth = d;
 }
 
 void OccupancyHistogramTree::setCameraPos(glm::vec3 pos){
@@ -254,7 +263,7 @@ SubTreeOrder OccupancyHistogramTree::getSpaceOrder(OHTreeNode * node, OHTreeNode
 
 void  OccupancyHistogramTree::subDivision(OHTreeNode* node) {
 	if (node->depth == maxDepth) {
-		sampleVolume(node);
+		rangeSampleVolume(node);
 	}
 	else {
 		for (int i = 0; i < 8; i++) {
@@ -270,11 +279,6 @@ void OccupancyHistogramTree::subDivisionRoot() {
 }
 
 void OccupancyHistogramTree::sampleVolume(OHTreeNode* node) {
-	int width = 128;
-	int height = 128;
-	int depth = 128;
-
-	int size = (int)std::pow(2, maxDepth - 1);
 	glm::vec3 pos = (node->minPos + node->maxPos) * 0.5f;
 	pos = pos - root->minPos;
 	float x = pos.x / (root->maxPos.x - root->minPos.x);
@@ -288,6 +292,31 @@ void OccupancyHistogramTree::sampleVolume(OHTreeNode* node) {
 		node->occupancyClass = OccupancyClass::empty;
 	}
 	else node->occupancyClass = OccupancyClass::nonEmpty;	
+}
+
+void OccupancyHistogramTree::rangeSampleVolume(OHTreeNode* node){
+	int size = (int)std::pow(2, maxDepth - 1);
+	int minX = (node->minPos.x - root->minPos.x) / (root->maxPos.x - root->minPos.x) * width;
+	int minY = (node->minPos.y - root->minPos.y) / (root->maxPos.y - root->minPos.y) * height;
+	int minZ = (node->minPos.z - root->minPos.z) / (root->maxPos.z - root->minPos.z) * depth;
+	int maxX = (node->maxPos.x - root->minPos.x) / (root->maxPos.x - root->minPos.x) * width;
+	int maxY = (node->maxPos.y - root->minPos.y) / (root->maxPos.y - root->minPos.y) * height;
+	int maxZ = (node->maxPos.z - root->minPos.z) / (root->maxPos.z - root->minPos.z) * depth;
+	int luminanceCount = 0;
+	int total = (maxX - minX) * (maxY - minY) * (maxZ - minZ);
+	for (int i = minX; i < maxX; i++) {
+		for (int j = minY; j < maxY; j++) {
+			for (int k = minZ; k < maxZ; k++) {
+				int index = k * width * height + j * width + i;
+ 				if (volumeData[index] >= 25) {
+					luminanceCount++;
+				}
+			}
+		}
+	}
+	float percent = (float)luminanceCount / (float)total;
+	if (percent > 0.01) node->occupancyClass = OccupancyClass::nonEmpty;
+	else node->occupancyClass = OccupancyClass::empty;
 }
 #endif // !OCCUPANCYHISTOGRAMTREE
 

@@ -36,12 +36,14 @@ void initGeometryArray();
 void updateGeometryArray();
 void renderLoop();
 void renderLoop2();
+void RenderRaySegmentList();
+void RenderSparseLeap();
 void destroy();
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
-const unsigned int RAY_SEGMENT_LIST_LENGTH = 60;
+const unsigned int SCR_WIDTH = 1280;
+const unsigned int SCR_HEIGHT = 720;
+const unsigned int RAY_SEGMENT_LIST_LENGTH = 30;
 
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
@@ -227,7 +229,7 @@ void mouse_callback(GLFWwindow * window, double xpos, double ypos)
 
 	lastX = xpos;
 	lastY = ypos;
-	if (xoffset != 0 || yoffset != 0) updateGeometryArray();
+	if (xoffset > 2 || yoffset > 2 ) updateGeometryArray();
 	camera.ProcessMouseMovement(xoffset, yoffset);
 	
 }
@@ -357,7 +359,7 @@ unsigned int initFrameBuffer(unsigned int& texture) {
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, 800, 600, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -366,7 +368,7 @@ unsigned int initFrameBuffer(unsigned int& texture) {
 	unsigned int depthBuffer;
 	glGenRenderbuffers(1, &depthBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 800, 600);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << std::endl;
@@ -457,6 +459,7 @@ void initGL() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
 
 	// glfw window creation
 	// --------------------
@@ -675,7 +678,8 @@ void clearTextureImage(){
 }
 
 void loadVolumeData() {
-	volumeTex = load3DTexture("2pic2.tif", 128, 128, 128);
+	//volumeTex = load3DTexture("2pic2.tif", 128, 128, 128); //
+	volumeTex = load3DTexture("test.raw", 512, 512, 512);
 	tex1d = loadTexture2("test.png");
 }
 
@@ -699,10 +703,11 @@ void initShader() {
 
 void initOccupancyHistogramTree() {
 	occupancyHistogramTree = new OccupancyHistogramTree();
-	occupancyHistogramTree->setMaxDepth(8);
+	occupancyHistogramTree->setMaxDepth(5);
 	occupancyHistogramTree->setPosition(glm::vec3(-0.5f), glm::vec3(0.5f));
 	occupancyHistogramTree->setCameraPos(glm::vec3(0.0f, 0.0f, 3.0f));
 	occupancyHistogramTree->setVolumeData(volumeData);
+	occupancyHistogramTree->setDataSize(512, 512, 512);
 	occupancyHistogramTree->setMaxNode(16777216);
 	occupancyHistogramTree->subDivisionRoot();
 	occupancyHistogramTree->Propagation();
@@ -735,7 +740,7 @@ void initGeometryArray(){
 }
 
 void updateGeometryArray(){
-	occupancyHistogramTree->setCameraPos(glm::vec3(0.0f, 0.0f, 3.0f));
+	occupancyHistogramTree->setCameraPos(camera.Position);
 	occupancyHistogramTree->TraversalIndexOrderRoot();
 	glm::vec3 geometryCenter;
 	int offsetIndex = 0, infoIndex = 0;
@@ -771,7 +776,7 @@ void renderLoop(){
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		view = lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 		//rot = glm::rotate(rot, glm::radians(1.0f), glm::vec3(0, 1, 0));
 		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
@@ -812,6 +817,7 @@ void renderLoop(){
 		// 第二处理阶段
 		glBindFramebuffer(GL_FRAMEBUFFER, 0); // 返回默认
 		frontShader.use();
+		frontShader.setVec2("ScreenSize", glm::vec2(SCR_WIDTH, SCR_HEIGHT));
 		glBindVertexArray(cubeVAO);
 
 		glActiveTexture(GL_TEXTURE0);
@@ -834,7 +840,8 @@ void renderLoop(){
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
-		glfwSwapBuffers(window);
+		//glfwSwapBuffers(window);
+		glFlush();
 		glfwPollEvents();
 	}
 }
@@ -845,7 +852,7 @@ void renderLoop2() {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-		projection = glm::perspective(glm::radians(camera.Zoom), 800.0f / 600.0f, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		view = lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 		//rot = glm::rotate(rot, glm::radians(1.0f), glm::vec3(0, 1, 0));
 		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
@@ -861,98 +868,76 @@ void renderLoop2() {
 		// bind Texture
 		clearTextureImage();
 		
-		// render container
-		// render
-		// ------
-		// 第一处理阶段
-		glDisable(GL_DEPTH_TEST);
-		
 		glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		raySegmentListShader.use();
-		raySegmentListShader.setVec3("cameraPos", camera.Position);
-		glBindVertexArray(geometryVAO);
-		glDrawArraysInstanced(GL_TRIANGLES, 0, 36, geometryOffsetSize/3);
-		//glDrawArraysInstanced(GL_TRIANGLES, 0, 36, i);
-		i = i + 3;
-		glBindVertexArray(0);
+		RenderRaySegmentList();
 
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-		glClear(GL_COLOR_BUFFER_BIT);
-		
-		/*glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-
-		sparseLeapShader.use();
-		sparseLeapShader.setInt("volume", 1);
-		sparseLeapShader.setInt("transferFunc", 2);
-
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_3D, volumeTex);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_1D, tex1d);
-
-		sparseLeapShader.setVec3("viewPoint", camera.Position);
-		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-
-		glDisable(GL_CULL_FACE);*/
-
-		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // 我们现在不使用模板缓冲
-		glEnable(GL_DEPTH_TEST);
-		boxShader.use();
-		glBindVertexArray(cubeVAO);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_FRONT);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_DEPTH_TEST);
-
-		// 第二处理阶段
-		glBindFramebuffer(GL_FRAMEBUFFER, 0); // 返回默认
-		sparseLeapShader.use();
-
-		sparseLeapShader.setInt("exitPoints", 0);
-		sparseLeapShader.setInt("volume", 1);
-		sparseLeapShader.setInt("transferFunc", 2);
-
-		
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_3D, volumeTex);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_1D, tex1d);
-
-
-		//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		glEnable(GL_CULL_FACE);
-		glCullFace(GL_BACK);
-
-		glBindVertexArray(cubeVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
-
-		glDisable(GL_CULL_FACE);
+		RenderSparseLeap();
 		
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
-		glfwSwapBuffers(window);
+		//glfwSwapBuffers(window);
+		glFlush();
+		
 		glfwPollEvents();
 	}
 }
 
-void renderRaySegmentList() {
+void RenderRaySegmentList() {
+	glDisable(GL_DEPTH_TEST);
+	//glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	raySegmentListShader.use();
+	raySegmentListShader.setVec3("cameraPos", camera.Position);
+	glBindVertexArray(geometryVAO);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 36, geometryOffsetSize / 3);
+	//glDrawArraysInstanced(GL_TRIANGLES, 0, 36, i);
+	glBindVertexArray(0);
+	i+=5;
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
+void RenderSparseLeap(){
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	boxShader.use();
+	glBindVertexArray(cubeVAO);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+
+	// 第二处理阶段
+	glBindFramebuffer(GL_FRAMEBUFFER, 0); // 返回默认
+	sparseLeapShader.use();
+
+	sparseLeapShader.setInt("exitPoints", 0);
+	sparseLeapShader.setInt("volume", 1);
+	sparseLeapShader.setInt("transferFunc", 2);
+	sparseLeapShader.setVec2("ScreenSize", glm::vec2(SCR_WIDTH, SCR_HEIGHT));
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_3D, volumeTex);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_1D, tex1d);
+
+	glClear(GL_COLOR_BUFFER_BIT);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+
+	glBindVertexArray(cubeVAO);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+
+	glDisable(GL_CULL_FACE);
 }
 
 void destroy() {

@@ -143,15 +143,15 @@ void main()
 	if (parentClass == 3 && gl_FrontFacing) {
 		imageStore(FrontPositionTexture2D, ivec2(gl_FragCoord.xy), vec4(position, 0.0f));
 	}
+	//if (parentClass == 3) discard;
 	vec3 frontPos = imageLoad(FrontPositionTexture2D, ivec2(gl_FragCoord.xy)).xyz;
-	float dist = distance(position, frontPos);
+	float dist = length(position-frontPos);
 	if (isFrontFace) {
 		AddRayEvent(dist, faceOrder, nodeClass);
 	}
 	else {
 		AddRayEvent(dist, faceOrder, parentClass);
 	}
-	//FragColor = vec4(color, 1);
 	float a = float(id);
 	a = a / 27596f;
 	FragColor = vec4(vec3(a), 1);

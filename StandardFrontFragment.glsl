@@ -8,7 +8,7 @@ uniform sampler2D exitPoints;
 uniform sampler3D volume;
 uniform sampler1D transferFunc;  
 uniform float     StepSize = 0.001f;
-uniform vec2      ScreenSize = vec2(800,600);
+uniform vec2      ScreenSize;
 layout (location = 0) out vec4 FragColor;
 
 void main(){

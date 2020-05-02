@@ -8,7 +8,7 @@ uniform sampler3D volume;
 uniform sampler1D transferFunc;
 uniform float StepSize = 0.001f;
 uniform vec3 viewPoint;
-uniform vec2 ScreenSize = vec2(800, 600);
+uniform vec2 ScreenSize;
 layout(binding = 0, r32ui) uniform uimage2D CountTexture2D;
 layout(binding = 1, r32f) uniform image3D DepthTexture3D;
 layout(binding = 2, r32ui) uniform uimage3D ClassTexture3D;
@@ -61,13 +61,12 @@ bool Sample(Event eventSegBegin, Event eventSegEnd) {
 		voxelCoord += deltaDir;
 		DepthAcum += deltaDirLen;
 		if (colorSample.a > 0.0) {
-			colorSample.a = 1.0 - pow(1.0 - colorSample.a, StepSize * 2000.0f);
+			colorSample.a = 1.0 - pow(1.0 - colorSample.a, StepSize * 200.0f);
 			colorAcum.rgb += (1.0 - colorAcum.a) * colorSample.rgb * colorSample.a;
 			colorAcum.a += (1.0 - colorAcum.a) * colorSample.a;
 		}
 		if (DepthAcum >= eventSegEnd.depth) {	//³¬³ö¹âÏß·¶Î§
 			//colorAcum.rgb = colorAcum.rgb * colorAcum.a + (1 - colorAcum.a) * bgColor.rgb;
-			flag = true;
 			break;
 		}
 		else if (colorAcum.a > 1.0) {
@@ -84,7 +83,8 @@ void main() {
 	dir = exitPoint - EntryPoint;
 	deltaDir = normalize(dir) * StepSize;
 	deltaDirLen = length(deltaDir);
-	
+	listLength = imageLoad(CountTexture2D, ivec2(gl_FragCoord.xy)).x;
+	int i = 1;
 	Event eventSegBegin = GetNextRayEvent();
 	Event eventSegEnd;
 	while (!ListIsEmpty()) {
@@ -97,13 +97,14 @@ void main() {
 			}
 		}
 		eventSegBegin = eventSegEnd;
+		i++;
 	}
 	//colorAcum.rgb = colorAcum.rgb * colorAcum.a + (1 - colorAcum.a) * bgColor.rgb;
-	if (colorAcum.a != 1) {
+	if (colorAcum.a != 1.0) {
 		colorAcum.rgb = colorAcum.rgb * colorAcum.a + (1 - colorAcum.a) * bgColor.rgb;
 	}
 	FragColor = colorAcum;
-
-	float a = float(listLength) / 10f;
+	imageStore(FrontPositionTexture2D, ivec2(gl_FragCoord.xy), vec4(float(i)));
+	float a = float(i) / 30;
 	//FragColor = vec4(vec3(a),1);
 }
