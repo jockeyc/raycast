@@ -14,10 +14,7 @@ layout(binding = 1, r32f) uniform image3D DepthTexture3D;
 layout(binding = 2, r32ui) uniform uimage3D ClassTexture3D;
 layout(binding = 3, r32ui) uniform uimage3D TypeTexture3D;
 layout(binding = 4, rgba32f) uniform image2D FrontPositionTexture2D;
-layout(binding = 5, r32ui) uniform uimage3D InstanceIDTexture3D;
-layout(binding = 6, r32ui) uniform uimage1D ReportUnknownInstancedID;
-layout(binding = 7) uniform atomic_uint InstanceCounter;
-
+	
 layout(location = 0) out vec4 FragColor;
 
 uint currentLength = 0;
@@ -37,7 +34,6 @@ struct Event {
 	float depth;
 	uint eventType;
 	uint eventClass;
-	uint instanceID;
 };
 
 Event GetNextRayEvent() {
@@ -45,7 +41,6 @@ Event GetNextRayEvent() {
 	event.depth = imageLoad(DepthTexture3D, ivec3(gl_FragCoord.xy, currentLength)).x;
 	event.eventType = imageLoad(TypeTexture3D, ivec3(gl_FragCoord.xy, currentLength)).x;
 	event.eventClass = imageLoad(ClassTexture3D, ivec3(gl_FragCoord.xy, currentLength)).x;
-	event.instanceID = imageLoad(InstanceIDTexture3D, ivec3(gl_FragCoord.xy, currentLength)).x;
 	currentLength++;
 	return event;
 }
@@ -83,11 +78,6 @@ bool Sample(Event eventSegBegin, Event eventSegEnd) {
 	return flag;
 }
 
-void ReportCullCacheMiss(uint instanceID) {
-	imageStore(ReportUnknownInstancedID, int(instanceID), uvec4(1));
-	
-}
-
 void main() {
 	vec3 exitPoint = texture(exitPoints, gl_FragCoord.st / ScreenSize).xyz;
 	dir = exitPoint - EntryPoint;
@@ -100,18 +90,21 @@ void main() {
 	while (!ListIsEmpty()) {
 		eventSegEnd = GetNextRayEvent();
 		if (eventSegBegin.eventClass != 0) {
-			if (eventSegBegin.eventClass == 2) {
-				ReportCullCacheMiss(eventSegBegin.instanceID);
-			}
 			bool flag = Sample(eventSegBegin, eventSegEnd);
 			if (flag) break;
-			
+			if (eventSegBegin.eventClass == 2) {
+				//todo ReportUnknown
+			}
 		}
 		eventSegBegin = eventSegEnd;
 		i++;
 	}
+	//colorAcum.rgb = colorAcum.rgb * colorAcum.a + (1 - colorAcum.a) * bgColor.rgb;
 	if (colorAcum.a != 1.0) {
 		colorAcum.rgb = colorAcum.rgb * colorAcum.a + (1 - colorAcum.a) * bgColor.rgb;
 	}
 	FragColor = colorAcum;
+	imageStore(FrontPositionTexture2D, ivec2(gl_FragCoord.xy), vec4(float(i)));
+	float a = float(i) / 30;
+	//FragColor = vec4(vec3(a),1);
 }

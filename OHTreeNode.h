@@ -72,7 +72,7 @@ public:
 			occupancyHistogram[(int)OccupancyClass::nonEmpty] += children[i]->getCount(OccupancyClass::nonEmpty);
 			occupancyHistogram[(int)OccupancyClass::unknown] += children[i]->getCount(OccupancyClass::unknown);
 		}
-		int index=0, max = 0;
+		int index, max = 0;
 		int zeroCount = 0;
 		for (int i = 0; i < 3; i++) {
 			if (occupancyHistogram[i] > max) {

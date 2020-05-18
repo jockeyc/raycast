@@ -15,7 +15,6 @@ layout(binding = 1, r32f) uniform image3D DepthTexture3D;
 layout(binding = 2, r32ui) uniform uimage3D ClassTexture3D;
 layout(binding = 3, r32ui) uniform uimage3D TypeTexture3D;
 layout(binding = 4, rgba32f) uniform image2D FrontPositionTexture2D;
-layout(binding = 5, r32ui) uniform uimage3D InstanceIDTexture3D;
 
 out vec4 FragColor;
 
@@ -25,7 +24,6 @@ struct Event {
 	float depth;
 	uint eventType;
 	uint eventClass;
-	uint instanceID;
 };
 uint Length;
 float closeDistance = 0.1f;
@@ -39,7 +37,6 @@ Event getPrevEvent() {
 	event.depth = imageLoad(DepthTexture3D, ivec3(gl_FragCoord.xy, Length - 1)).x;
 	event.eventType = imageLoad(TypeTexture3D, ivec3(gl_FragCoord.xy, Length - 1)).x;
 	event.eventType = imageLoad(ClassTexture3D, ivec3(gl_FragCoord.xy, Length - 1)).x;
-	event.instanceID = imageLoad(InstanceIDTexture3D, ivec3(gl_FragCoord.xy, Length - 1)).x;
 	return event;
 }
 
@@ -48,15 +45,13 @@ Event getPrevPrevEvent() {
 	event.depth = imageLoad(DepthTexture3D, ivec3(gl_FragCoord.xy, Length - 2)).x;
 	event.eventType = imageLoad(TypeTexture3D, ivec3(gl_FragCoord.xy, Length - 2)).x;
 	event.eventType = imageLoad(ClassTexture3D, ivec3(gl_FragCoord.xy, Length - 2)).x;
-	event.instanceID = imageLoad(InstanceIDTexture3D, ivec3(gl_FragCoord.xy, Length - 2)).x;
 	return event;
 }
 
-void overwritePrevEvent(float depth, uint eventType, uint eventClass, uint instanceID) {
+void overwritePrevEvent(float depth, uint eventType, uint eventClass) {
 	imageStore(DepthTexture3D, ivec3(gl_FragCoord.xy, Length - 1), vec4(depth));
 	imageStore(TypeTexture3D, ivec3(gl_FragCoord.xy, Length - 1), uvec4(eventType));
 	imageStore(ClassTexture3D, ivec3(gl_FragCoord.xy, Length - 1), uvec4(eventClass));
-	imageStore(InstanceIDTexture3D, ivec3(gl_FragCoord.xy, Length - 1), uvec4(instanceID));
 }
 
 void deletePrevEvent() {
@@ -64,13 +59,12 @@ void deletePrevEvent() {
 	imageStore(CountTexture2D, ivec2(gl_FragCoord.xy), uvec4(Length));
 }
 
-void appendEvent(float depth, uint eventType, uint eventClass, uint instanceID) {
+void appendEvent(float depth, uint eventType, uint eventClass) {
 	Length++;
 	imageStore(CountTexture2D, ivec2(gl_FragCoord.xy), uvec4(Length));
 	imageStore(DepthTexture3D, ivec3(gl_FragCoord.xy, Length - 1), vec4(depth));
 	imageStore(TypeTexture3D, ivec3(gl_FragCoord.xy, Length - 1), uvec4(eventType));
 	imageStore(ClassTexture3D, ivec3(gl_FragCoord.xy, Length - 1), uvec4(eventClass));
-	imageStore(InstanceIDTexture3D, ivec3(gl_FragCoord.xy, Length - 1), uvec4(instanceID));
 }
 
 bool isClose(float depth1, float depth2) {
@@ -78,7 +72,7 @@ bool isClose(float depth1, float depth2) {
 	else return false;
 }
 
-bool MergeRayEvents(float depth, uint eventType, uint eventClass, uint instanceID)  {
+bool MergeRayEvents(float depth, uint eventType, uint eventClass)  {
 	bool flag = false;
 	Event eventPrev;
 	Event eventPrevPrev;
@@ -90,7 +84,7 @@ bool MergeRayEvents(float depth, uint eventType, uint eventClass, uint instanceI
 		if (eventPrev.depth == depth) {
 			flag = true;
 			if (eventPrev.eventType == eventType) {
-				overwritePrevEvent(depth, eventType, eventClass, instanceID);
+				overwritePrevEvent(depth, eventType, eventClass);
 			}
 			else if (eventType == 1) {
 				deletePrevEvent();
@@ -103,7 +97,7 @@ bool MergeRayEvents(float depth, uint eventType, uint eventClass, uint instanceI
 		if (eventPrev.depth == depth) {
 			flag = true;
 			if (eventPrev.eventType == eventType) {
-				overwritePrevEvent(depth, eventType, eventClass, instanceID);
+				overwritePrevEvent(depth, eventType, eventClass);
 			}
 			else if (eventType == 1) {
 				deletePrevEvent();
@@ -116,7 +110,7 @@ bool MergeRayEvents(float depth, uint eventType, uint eventClass, uint instanceI
 	if (isClose(eventPrev.depth, depth) && eventPrev.eventClass == 0) {
 		if (eventClass == 1) {
 			if (eventPrev.eventType == eventType) {
-				overwritePrevEvent(eventPrev.depth, eventType, eventClass, instanceID);
+				overwritePrevEvent(eventPrev.depth, eventType, eventClass);
 				flag = true;
 			}
 			else {
@@ -125,16 +119,16 @@ bool MergeRayEvents(float depth, uint eventType, uint eventClass, uint instanceI
 			}
 		}
 		else if (eventClass == 2) {
-			overwritePrevEvent(depth, eventType, eventClass, instanceID);
+			overwritePrevEvent(depth, eventType, eventClass);
 			flag = true;
 		}
 	}
 	return flag;
 }
 
-void AddRayEvent(float depth, uint eventType, uint eventClass, uint instanceID) {
-	bool hasDone = MergeRayEvents(depth, eventType, eventClass, instanceID);
-	if (!hasDone) appendEvent(depth, eventType, eventClass, instanceID);
+void AddRayEvent(float depth, uint eventType, uint eventClass) {
+	bool hasDone = MergeRayEvents(depth, eventType, eventClass);
+	if (!hasDone) appendEvent(depth, eventType, eventClass);
 }
 
 void main()
@@ -153,10 +147,10 @@ void main()
 	vec3 frontPos = imageLoad(FrontPositionTexture2D, ivec2(gl_FragCoord.xy)).xyz;
 	float dist = length(position-frontPos);
 	if (isFrontFace) {
-		AddRayEvent(dist, faceOrder, nodeClass, id);
+		AddRayEvent(dist, faceOrder, nodeClass);
 	}
 	else {
-		AddRayEvent(dist, faceOrder, parentClass, id);
+		AddRayEvent(dist, faceOrder, parentClass);
 	}
 	float a = float(id);
 	a = a / 27596f;
