@@ -38,10 +38,12 @@ public:
 	void getSubOrder(GeometryNode * node, std::vector<SubTreeOrder>& vec);	//
 	SubTreeOrder getSpaceOrder(OHTreeNode * node, OHTreeNode * subNode);	//得到后者节点在前者的哪颗子树中
 	//bool static subOrderCompare(std::pair<SubTreeOrder, glm::vec3>& A, std::pair<SubTreeOrder, glm::vec3>& B);
+	void upateParentNode(OHTreeNode* node);
 	void subDivision(OHTreeNode* node);
 	void subDivisionRoot();
 	void sampleVolume(OHTreeNode* node);
 	void rangeSampleVolume(OHTreeNode* node);
+	void culling(glm::vec3 offset, float scale);
 };
 
 OccupancyHistogramTree::OccupancyHistogramTree() {
@@ -274,6 +276,19 @@ void  OccupancyHistogramTree::subDivision(OHTreeNode* node) {
 	}
 }
 
+
+//void  OccupancyHistogramTree::subDivision(OHTreeNode* node) {
+//	if (node->depth == maxDepth) {
+//		rangeSampleVolume(node);
+//	}
+//	else {
+//		for (int i = 0; i < 8; i++) {
+//			node->children[i] = new OHTreeNode(node, (SubTreeOrder)i);
+//		}
+//		node->update();
+//	}
+//}
+
 void OccupancyHistogramTree::subDivisionRoot() {
 	subDivision(root);
 }
@@ -317,6 +332,21 @@ void OccupancyHistogramTree::rangeSampleVolume(OHTreeNode* node){
 	float percent = (float)luminanceCount / (float)total;
 	if (percent > 0.01) node->occupancyClass = OccupancyClass::nonEmpty;
 	else node->occupancyClass = OccupancyClass::empty;
+}
+
+void OccupancyHistogramTree::culling(glm::vec3 offset, float scale){
+	glm::vec3 center = offset;
+	OHTreeNode* node = root;
+	while (offset != ((node->maxPos + node->minPos) * 0.5f)) {
+		glm::vec3 center = (node->minPos + node->maxPos) * 0.5f;
+		int x = 0, y = 0, z = 0;
+		if (offset.x < center.x) x = 1;
+		if (offset.y < center.y) y = 1;
+		if (offset.z < center.z) z = 1;
+		int res = (x << 2) + (y << 1) + z;
+		node = node->children[res];
+	}
+	subDivision(node);
 }
 #endif // !OCCUPANCYHISTOGRAMTREE
 
