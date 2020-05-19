@@ -43,7 +43,7 @@ void destroy();
 // settings
 const unsigned int SCR_WIDTH = 1280;
 const unsigned int SCR_HEIGHT = 720;
-const unsigned int RAY_SEGMENT_LIST_LENGTH = 30;
+const unsigned int RAY_SEGMENT_LIST_LENGTH = 15;
 
 float deltaTime = 0.0f; // 当前帧与上一帧的时间差
 float lastFrame = 0.0f; // 上一帧的时间
@@ -459,11 +459,11 @@ void initGL() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE);
+	//glfwWindowHint(GLFW_DOUBLEBUFFER, GL_FALSE); //break 60fps
 
 	// glfw window creation
 	// --------------------
-	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "SparseLeap", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -688,10 +688,10 @@ void initMatrix() {
 	//model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	
 
-	view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
+	/*view = glm::lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 
 	projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-	mvp = projection * view * model;
+	mvp = projection * view * model;*/
 }
 
 void initShader() {
@@ -703,7 +703,7 @@ void initShader() {
 
 void initOccupancyHistogramTree() {
 	occupancyHistogramTree = new OccupancyHistogramTree();
-	occupancyHistogramTree->setMaxDepth(5);
+	occupancyHistogramTree->setMaxDepth(7);
 	occupancyHistogramTree->setPosition(glm::vec3(-0.5f), glm::vec3(0.5f));
 	occupancyHistogramTree->setCameraPos(glm::vec3(0.0f, 0.0f, 3.0f));
 	occupancyHistogramTree->setVolumeData(volumeData);
@@ -841,7 +841,8 @@ void renderLoop(){
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
 		//glfwSwapBuffers(window);
-		glFlush();
+		glfwSwapBuffers(window);
+		//glFlush();
 		glfwPollEvents();
 	}
 }
@@ -852,7 +853,8 @@ void renderLoop2() {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
-		projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		//projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		projection = glm::ortho(0.0f, 1280.0f,0.0f,720.0f, 0.1f, 100.0f);
 		view = lookAt(camera.Position, camera.Position + camera.Front, camera.Up);
 		//rot = glm::rotate(rot, glm::radians(1.0f), glm::vec3(0, 1, 0));
 		glBindBuffer(GL_UNIFORM_BUFFER, UBO);
@@ -871,20 +873,21 @@ void renderLoop2() {
 		glClearColor(0.2f, 0.2f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+
 		RenderRaySegmentList();
 
 		RenderSparseLeap();
 		
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
-		//glfwSwapBuffers(window);
-		glFlush();
-		
+		glfwSwapBuffers(window);
+		//glFlush();
 		glfwPollEvents();
 	}
 }
 
 void RenderRaySegmentList() {
+	//glEnable(GL_DEPTH_TEST);
 	glDisable(GL_DEPTH_TEST);
 	//glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);

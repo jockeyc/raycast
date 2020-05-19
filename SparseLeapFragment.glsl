@@ -19,7 +19,7 @@ layout(location = 0) out vec4 FragColor;
 
 uint currentLength = 0;
 uint listLength = 0;
-vec3 frontPos;
+vec3 frontPos;             
 vec3 dir;
 vec3 deltaDir;
 float deltaDirLen;
@@ -60,10 +60,20 @@ bool Sample(Event eventSegBegin, Event eventSegEnd) {
 		colorSample = texture(transferFunc, intensity);	//通过传递函数进行查询
 		voxelCoord += deltaDir;
 		DepthAcum += deltaDirLen;
+
 		if (colorSample.a > 0.0) {
-			colorSample.a = 1.0 - pow(1.0 - colorSample.a, StepSize * 200.0f);
-			colorAcum.rgb += (1.0 - colorAcum.a) * colorSample.rgb * colorSample.a;
-			colorAcum.a += (1.0 - colorAcum.a) * colorSample.a;
+			if (gl_FragCoord.x < 640) {
+				colorSample.a = 1.0 - pow(1.0 - colorSample.a, StepSize * 200.0f);
+				colorAcum.rgb += (1.0 - colorAcum.a) * colorSample.rgb * colorSample.a;
+				colorAcum.a += (1.0 - colorAcum.a) * colorSample.a;
+			}
+			else {
+				colorSample.a = 1 - colorSample.a;
+				colorAcum.rgb += colorSample.rgb * colorAcum.a;
+				colorAcum.a = (colorAcum.a) * colorSample.a;
+			}
+			
+			
 		}
 		if (DepthAcum >= eventSegEnd.depth) {	//超出光线范围
 			//colorAcum.rgb = colorAcum.rgb * colorAcum.a + (1 - colorAcum.a) * bgColor.rgb;

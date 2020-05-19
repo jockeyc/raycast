@@ -153,7 +153,7 @@ void main()
 		AddRayEvent(dist, faceOrder, parentClass);
 	}
 	float a = float(id);
-	a = a / 27596f;
+	a = a / 23574f*3;
 	FragColor = vec4(vec3(a), 1);
 	endInvocationInterlockARB();
 }
