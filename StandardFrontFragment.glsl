@@ -35,7 +35,7 @@ void main(){
     	colorSample = texture(transferFunc, intensity);	//通过传递函数进行查询
 
     	if (colorSample.a > 0.0) {
-    	    colorSample.a = 1.0 - pow(1.0 - colorSample.a, StepSize*200.0f);
+    	    //colorSample.a = 1.0 - pow(1.0 - colorSample.a, StepSize*200.0f);
     	    colorAcum.rgb += (1.0 - colorAcum.a) * colorSample.rgb * colorSample.a;
     	    colorAcum.a += (1.0 - colorAcum.a) * colorSample.a;
     	}
